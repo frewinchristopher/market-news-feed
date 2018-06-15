@@ -1,0 +1,39 @@
+{
+  "name": "market-news-feed",
+  "version": "1.0.0",
+  "description": "A scraper based news feed. Add stocks and get push notifications for new news!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frewinchristopher/market-news-feed.git"
+  },
+  "keywords": [
+    "web",
+    "scraper",
+    "news",
+    "feed",
+    "market"
+  ],
+  "author": "Chris Frewin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/frewinchristopher/market-news-feed/issues"
+  },
+  "homepage": "https://github.com/frewinchristopher/market-news-feed#readme",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.2",
+    "cheerio-tableparser": "^1.0.1",
+    "lame": "^1.2.4",
+    "lodash": "^4.17.10",
+    "node-schedule": "^1.3.0",
+    "pg": "^7.4.3",
+    "say": "^0.14.0",
+    "sha256": "^0.2.0",
+    "speaker": "^0.4.1",
+    "unescape": "^1.0.1"
+  }
+}
