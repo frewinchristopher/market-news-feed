@@ -253,7 +253,7 @@ function insertIntoDatabase(oRow) {
 scanForNews([GENERAL, "TWTR", "APA", "TEUM", "EXEL"]); // TODO: make this a web call (or desktop or mobile app call)
 
 // nginx should rewrite API rueqest and should give just root
-app.get("/", function(req, res) {
+app.get("/market-news-feed-api", function(req, res) {
   client.query(sSelectQuery, (err, oResponse) => {
     if (err) {
       console.log(err.stack)
