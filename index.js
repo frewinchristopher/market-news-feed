@@ -11,6 +11,14 @@ const sha256 = require('sha256');
 const _ = require('lodash');
 const GENERAL = "GENERAL";
 var decode = require('unescape');
+const express = require('express');
+const morgan = require('morgan');
+const app = express();
+var http = require('http').Server(app);
+var cors = require('cors')
+var bodyParser = require('body-parser');
+var io = require('socket.io')(http); // server side of socket
+const sSelectQuery = 'SELECT * FROM news;'
 
 // connect to marketnewsfeed postgres database ( test data on mac, production on dell )
 const client = new Client({
@@ -21,6 +29,15 @@ const client = new Client({
   port: process.env.MARKET_NEWS_DB_PORT,
 });
 client.connect();
+
+// CORS: should whitelist; too lazy
+app.use(cors());
+
+// bodyParser to get posts from $.ajax
+app.use(bodyParser.json());
+
+// Setup logger
+app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms'));
 
 // scrapes all news from finviz. the article will be added if its hashed datetime of release and title are not already in the database
 async function scrapeNews(sIdentifier) {
@@ -108,9 +125,6 @@ function googleTextToSpeeachMP3(sTextToSpeak) {
     fs.writeFileSync("report.mp3", oResponse.data.audioContent, 'base64', function(err) { // write this base64 to an mp3
       console.log(err);
     });
-    // console.log("MP3 file saved at report.mp3");
-    // console.log("Here is the text and playback of the voice:");
-    // console.log(sTextToSpeach);
     fs.createReadStream("report.mp3")
       .pipe(new lame.Decoder())
       .on('format', function (format) {
@@ -144,7 +158,6 @@ function hasMonth(sFinvizDateTime) {
 
 // if new, insert into news table
 function insertIntoDatabase(oRow) {
-  console.log(oRow);
  let sQuery = {
    text: 'INSERT INTO news(id,news_type,identifier,unix_time_released,title,link) VALUES($1,$2,$3,$4,$5,$6)',
    values: [oRow.sId, oRow.sType, oRow.sIdentifier, oRow.iUnixDateTime, oRow.sTitle, oRow.sLink]
@@ -153,15 +166,10 @@ function insertIntoDatabase(oRow) {
    if (err) {
      console.log(err.stack);
    } else {
-     // var response = {
-     //     status  : 200,
-     //     info : 'Email recorded successfully',
-     //     bAlreadyHaveEmail: false
-     // };
-     // res.send(JSON.stringify(response));
-     console.log('Successfully saved to DB!'  + oRow.sId);
+     console.log('Successfully saved to DB! '  + oRow.sId);
      sNewsString = "Breaking news for " + oRow.sIdentifier + ": '" + oRow.sTitle;
      speak(sNewsString); // and speak it - see speak function - it is debounced so on a new addition only the most recent is spoken
+     io.emit('newNews', oRow ); // and emit the row object to the frontend
    }
  });
 }
@@ -243,3 +251,20 @@ function insertIntoDatabase(oRow) {
 //scrapeNews("TWTR");
 
 scanForNews([GENERAL, "TWTR", "APA", "TEUM", "EXEL"]); // TODO: make this a web call (or desktop or mobile app call)
+
+// nginx should rewrite API rueqest and should give just root
+app.get("/", function(req, res) {
+  client.query(sSelectQuery, (err, oResponse) => {
+    if (err) {
+      console.log(err.stack)
+    } else {
+      res.send(JSON.stringify(oResponse.rows));
+      res.end(200);
+    }
+  });
+});
+
+// listening ports - reverse proxyed from nginx chrisfrew.in/market-news-api
+http.listen(9002, function() {
+  console.log('Listening on port ' + 9002);
+});// we run at 9001 and up for APIs (9000 reserved for API tests)

@@ -4,7 +4,7 @@ This node module scrapes the news and blogs tables at (https://finviz.com/news.a
 
 ## Requirements
 
-PATH variables with the following names:
+# PATH variables with the following names:
 
 MARKET_NEWS_DB_USER - the user of your postgresql database
 MARKET_NEWS_DB_HOST - the hostname of postgresql (usually is 127.0.0.1)
@@ -12,7 +12,7 @@ MARKET_NEWS_DB - the database name
 MARKET_NEWS_DB_PASSWORD - the user's password to postgresql
 MARKET_NEWS_DB_PORT - the port (usually is 5432)
 
-_If you don't know how to install postgresql and set PATH variables, I may consider writing a no-DB version, but I like postgresql :)_
+_If you don't know how to install postgresql and set PATH variables and postgresql users and tables and all that jazz, I may consider writing a no-DB version, but I like postgresql :)_
 
 Then, you have to create a new table called `news` in your chosen database. Issue in postgresql the following commands:
 
@@ -24,7 +24,7 @@ _This one is kind of mandatory if you want nice reading of the news titles. If y
 
 ## Installation
 
-Once you've added the environment variables, this should install fine with:
+Once you've added the environment variables and created the postgresql table and user, this should install fine with:
 
 `npm install`
 
@@ -33,3 +33,7 @@ and run with:
 `node index.js`
 
 If you've put in the correct API credentials for google, you'll hear a nice female voice read out to you the newest headline. If not, you'll at least see the new news printed to the console.
+
+A simple real time UI for this can be found at https://chrisfrew.in/market-news-feed
+
+

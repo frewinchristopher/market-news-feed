@@ -27,12 +27,14 @@
     "axios": "^0.18.0",
     "cheerio": "^1.0.0-rc.2",
     "cheerio-tableparser": "^1.0.1",
+    "cors": "^2.8.4",
     "lame": "^1.2.4",
     "lodash": "^4.17.10",
     "node-schedule": "^1.3.0",
     "pg": "^7.4.3",
     "say": "^0.14.0",
     "sha256": "^0.2.0",
+    "socket.io": "^2.1.1",
     "speaker": "^0.4.1",
     "unescape": "^1.0.1"
   }
