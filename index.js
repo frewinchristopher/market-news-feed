@@ -15,10 +15,9 @@ const express = require('express');
 const morgan = require('morgan');
 const app = express();
 var oServer = require('http').Server(app);
-var oServerWS = require('http').createServer();
 var cors = require('cors')
 var bodyParser = require('body-parser');
-var io = require('socket.io')(oServerWS); // server side of socket
+var io = require('socket.io')(oServer); // server side of socket
 const sSelectQuery = 'SELECT * FROM news;'
 
 // connect to marketnewsfeed postgres database ( test data on mac, production on dell )
@@ -267,9 +266,6 @@ app.get("/market-news-feed-api", function(req, res) {
 
 // listening ports - reverse proxyed from nginx chrisfrew.in/market-news-api
 oServer.listen(9002, function() {
-  console.log('HTTP Server listening on port ' + 9002);
+  console.log('HTTP / WS Server listening on port ' + 9002);
 });// we run at 9001 and up for APIs (9000 reserved for API tests)
 
-oServerWS.listen(9003, function() {
-  console.log('WS Server listening on port ' + 9003);
-})
