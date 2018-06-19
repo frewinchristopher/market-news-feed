@@ -20,6 +20,7 @@ var cors = require('cors')
 var bodyParser = require('body-parser');
 var io = require('socket.io')(oWebSocketServer); // server side of socket, port 9003
 const sSelectQuery = 'SELECT * FROM news;'
+let aTickers = [GENERAL, "TWTR", "APA", "TEUM", "EXEL"]; // global array
 
 // connect to marketnewsfeed postgres database ( test data on mac, production on dell )
 const client = new Client({
@@ -123,6 +124,7 @@ function googleTextToSpeeachMP3(sTextToSpeak) {
   axios.post("https://texttospeech.googleapis.com/v1beta1/text:synthesize?fields=audioContent&key=" + process.env.GOOGLE_CLOUD_TEXT_TO_SPEECH_API, oData)
   .then(function (oResponse) {
     // write dat baoss (an encoded string) response into an mp3 file
+    io.emit('mp3Data', {sBase64: "data:audio/wav;base64" + oResponse.data.audioContent}); // send to front end to play in GUI
     fs.writeFileSync("report.mp3", oResponse.data.audioContent, 'base64', function(err) { // write this base64 to an mp3
       console.log(err);
     });
@@ -251,18 +253,43 @@ function insertIntoDatabase(oRow) {
 //scrapeNews(GENERAL);
 //scrapeNews("TWTR");
 
-scanForNews([GENERAL, "TWTR", "APA", "TEUM", "EXEL"]); // TODO: make this a web call (or desktop or mobile app call)
+scanForNews(aTickers); // TODO: make this a web call (or desktop or mobile app call)
 
-// nginx should rewrite API rueqest and should give just root
+// return all news found so far to front end
 app.get("/market-news-feed-api", function(req, res) {
   client.query(sSelectQuery, (err, oResponse) => {
     if (err) {
       console.log(err.stack)
     } else {
+      // TODO: filter out any tickers that are not in the global list
       res.send(JSON.stringify(oResponse.rows));
       res.end(200);
     }
   });
+});
+
+// return tickers to front end
+app.get("/tickers", function(req, res) {
+    res.send(JSON.stringify(aTickers));
+    res.end(200);
+});
+
+// add ticker to global list
+app.post("/add-ticker", function(req, res) {
+  let sTicker = req.body.sTicker;
+  if (!aTickers.contains(sTicker)) { // only add ticker if it is not in the list
+    aTickers.push(sTicker);
+  }
+  res.end(200);
+});
+
+// delete ticker from global list
+app.post("/delete-ticker", function(req, res) {
+  let sTicker = req.body.sTicker;
+  if (aTickers.contains(sTicker)) {
+    _.pull(aTickers, sTicker); // remove that ticker!
+  }
+  res.end(200);
 });
 
 // listening ports - reverse proxyed from nginx chrisfrew.in/market-news-api
