@@ -270,7 +270,7 @@ oHTTPServer.listen(9002, function() {
   console.log('HTTP Server listening on port ' + 9002);
 });// we run at 9001 and up for APIs (9000 reserved for API tests)
 
-oWebSocketServer.list(9003, function() {
+oWebSocketServer.listen(9003, function() {
   console.log('Websocket Server listening on port ' + 9003);
-}
+});
 
