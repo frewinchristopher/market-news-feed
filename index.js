@@ -303,8 +303,8 @@ oWebSocketServer.listen(9003, function() {
 
 setInterval(() => {
   console.log("emitting various...");
-  io.emit("test", {test: 'testdata'});
-  //io.sockets.emit("test", {test: 'testdata'});
+  //io.emit("test", {test: 'testdata'});
+  io.sockets.emit("test", {test: 'testdata'});
   //io.of("/market-news-feed-ws").emit("test", {test: 'testdata'});
 },3000);
 
