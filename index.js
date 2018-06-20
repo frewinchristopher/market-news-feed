@@ -301,3 +301,10 @@ oWebSocketServer.listen(9003, function() {
   console.log('Websocket Server listening on port ' + 9003);
 });
 
+setInterval(() => {
+  console.log("emitting various...");
+  io.emit("test", {test: 'testdata'});
+  io.sockets.emit("test", {test: 'testdata'});
+  io.of("/market-news-feed-ws").emit("test", {test: 'testdata'});
+},3000);
+
