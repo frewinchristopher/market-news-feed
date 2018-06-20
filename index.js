@@ -262,7 +262,7 @@ app.get("/market-news-feed-api", function(req, res) {
       console.log(err.stack)
     } else {
       // TODO: filter out any tickers that are not in the global list
-      res.send(JSON.stringify(oResponse.rows));
+      res.send(JSON.stringify(oResponse.rows.reverse()));
       res.end(200);
     }
   });
