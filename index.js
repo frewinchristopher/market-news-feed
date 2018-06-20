@@ -20,7 +20,7 @@ var cors = require('cors')
 var bodyParser = require('body-parser');
 var io = require('socket.io')(oWebSocketServer); // server side of socket, port 9003
 const sSelectQuery = 'SELECT * FROM news;'
-let aTickers = [GENERAL, "TWTR", "APA", "TEUM", "EXEL"]; // global array
+let aTickers = [GENERAL, "TWTR", "APA", "TEUM", "EXEL", "FB"]; // global array
 
 // connect to marketnewsfeed postgres database ( test data on mac, production on dell )
 const client = new Client({
@@ -70,6 +70,7 @@ function timeTo24Hour(sTime) {
     sTime = sTime.replace('AM', ''); // strip off AM
     sTime = "T" + sTime + ":00";
   }
+  sTime = sTime.replace(/&#xA0;/g, ''); // remove crappy hex
   return sTime;
 }
 
@@ -124,7 +125,7 @@ function googleTextToSpeeachMP3(sTextToSpeak) {
   axios.post("https://texttospeech.googleapis.com/v1beta1/text:synthesize?fields=audioContent&key=" + process.env.GOOGLE_CLOUD_TEXT_TO_SPEECH_API, oData)
   .then(function (oResponse) {
     // write dat baoss (an encoded string) response into an mp3 file
-    io.of("/market-news-feed-ws").emit('mp3Data', {sBase64: "data:audio/wav;base64," + oResponse.data.audioContent.substr(2)}); // send to front end to play in GUI
+    io.of("/market-news-feed-ws").emit('mp3Data', {sBase64: "data:audio/wav;base64," + oResponse.data.audioContent}); // send to front end to play in GUI
     fs.writeFileSync("report.mp3", oResponse.data.audioContent, 'base64', function(err) { // write this base64 to an mp3
       console.log(err);
     });
@@ -200,7 +201,6 @@ function insertIntoDatabase(oRow) {
        sDateTimeString = timeToDatetimeString(sTime);
        iUnixDateTime = parseInt(new Date(sDateTimeString).getTime() / 1000);
        oRow = { sId: sId, sType: sType, sIdentifier: GENERAL, sDateTimeString: sDateTimeString, iUnixDateTime: iUnixDateTime, sTitle: sTitle, sLink: sLink };
-       // console.log(oRow);
        checkExistenceInDatabase(oRow);
        iCount = iCount + 1;
      } while (true);
@@ -223,20 +223,23 @@ function insertIntoDatabase(oRow) {
      // sId = sha256(sTitle + sLink); // create unique ID from title and URL (primary key of table)
      if (!sTime) {
        break;
-     } else {
-       sTime = sTime.replace(/&#xA0;/g, ""); // replace hex characters since sTime is not null 
-     }
-     // now check if this date has a month - carry it downwards through the table index so all news has full date and time
-     if (hasMonth(sTime)) {
-       sDate = sTime.split(" ")[0];
-     } else {
-       sTime = sDate + " " + sTime; // append date found
-     }
+     } 
+     // else {
+     //   sTime = sTime.replace(/&#xA0;/g, ""); // replace hex characters since sTime is not null 
+     // }
+     // // now check if this date has a month - carry it downwards through the table index so all news has full date and time
+     // if (hasMonth(sTime)) {
+     //   sDate = sTime.split(" ")[0];
+     // } else {
+     //   sTime = sDate + " " + sTime; // append date found
+     // }
      sDateTimeString = timeToDatetimeString(sTime);
      iUnixDateTime = parseInt(new Date(sDateTimeString).getTime() / 1000);
-     oRow = { sId: sId, sType: sType, sIdentifier: sIdentifier, iUnixDateTime: iUnixDateTime, sTitle: sTitle, sLink: sLink };
-     // console.log(oRow);
-     //checkExistenceInDatabase(oRow);
+     oRow = { sId: sId, sType: sType, sIdentifier: sIdentifier, sDateTimeString: sDateTimeString, iUnixDateTime: iUnixDateTime, sTitle: sTitle, sLink: sLink };
+     if (!iUnixDateTime) {
+      console.log(oRow);
+    }
+     checkExistenceInDatabase(oRow);
      iCount = iCount + 1;
    } while (true);
    // TODO: then parse each link, run some NLP stuff? honestly media is just a bunch of shit but maybe we could glean generalities
@@ -300,11 +303,4 @@ oHTTPServer.listen(9002, function() {
 oWebSocketServer.listen(9003, function() {
   console.log('Websocket Server listening on port ' + 9003);
 });
-
-setInterval(() => {
-  console.log("emitting various...");
-  //io.emit("test", {test: 'testdata'});
-  //io.sockets.emit("test", {test: 'testdata'});
-  io.of("/market-news-feed-ws").emit("test", {test: 'testdata'});
-},3000);
 
