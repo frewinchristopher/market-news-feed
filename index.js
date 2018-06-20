@@ -124,7 +124,7 @@ function googleTextToSpeeachMP3(sTextToSpeak) {
   axios.post("https://texttospeech.googleapis.com/v1beta1/text:synthesize?fields=audioContent&key=" + process.env.GOOGLE_CLOUD_TEXT_TO_SPEECH_API, oData)
   .then(function (oResponse) {
     // write dat baoss (an encoded string) response into an mp3 file
-    io.emit('mp3Data', {sBase64: "data:audio/wav;base64" + oResponse.data.audioContent}); // send to front end to play in GUI
+    io.of("/market-news-feed-ws").emit('mp3Data', {sBase64: "data:audio/wav;base64" + oResponse.data.audioContent}); // send to front end to play in GUI
     fs.writeFileSync("report.mp3", oResponse.data.audioContent, 'base64', function(err) { // write this base64 to an mp3
       console.log(err);
     });
@@ -172,7 +172,7 @@ function insertIntoDatabase(oRow) {
      console.log('Successfully saved to DB! '  + oRow.sId);
      sNewsString = "Breaking news for " + oRow.sIdentifier + ": '" + oRow.sTitle;
      speak(sNewsString); // and speak it - see speak function - it is debounced so on a new addition only the most recent is spoken
-     io.emit('newNews', oRow ); // and emit the row object to the frontend
+     io.of("/market-news-feed-ws").emit('newNews', oRow ); // and emit the row object to the frontend
    }
  });
 }
